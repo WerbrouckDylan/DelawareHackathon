@@ -116,7 +116,7 @@ public class ArMeasureActivity extends AppCompatActivity {
     // Tap handling and UI.
     private ArrayBlockingQueue<MotionEvent> queuedSingleTaps = new ArrayBlockingQueue<>(MAX_CUBE_COUNT);
     private ArrayBlockingQueue<MotionEvent> queuedLongPress = new ArrayBlockingQueue<>(MAX_CUBE_COUNT);
-    private final ArrayList<Anchor> anchors = new ArrayList<>();
+    private ArrayList<Anchor> anchors = new ArrayList<>(3);
     private ArrayList<Float> showingTapPointX = new ArrayList<>();
     private ArrayList<Float> showingTapPointY = new ArrayList<>();
 
@@ -441,26 +441,33 @@ public class ArMeasureActivity extends AppCompatActivity {
         ListView listViewSort = new ListView(this);
         // set our adapter and pass our pop up window contents
         listViewSort.setAdapter(adapter);
-        listViewSort.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                switch (position){
-                    case 3:// move vertical axis
-                        toast(R.string.action_4_toast);
-                        break;
-                    case 0:// delete
-                        toast(R.string.action_1_toast);
-                        break;
-                    case 1:// set as first
-                        toast(R.string.action_2_toast);
-                        break;
-                    case 2:// move horizontal axis
-                    default:
-                        toast(R.string.action_3_toast);
-                        break;
-                }
-                return true;
+        System.out.println("[yeett] " + "yeet" );
+        listViewSort.setOnItemLongClickListener((parent, view, position, id) -> {
+            switch (position){
+                case 3:// move vertical axis
+                    toast(R.string.action_4_toast);
+                    break;
+                case 0:// delete
+
+                    for (int i = 0; i < anchors.size(); i++) {
+                        anchors.get(0).detach();
+                        anchors.remove(0);
+                        showingTapPointX.remove(0);
+                        showingTapPointY.remove(0);
+                    }
+
+                    //anchors = new ArrayList<>();
+                    toast(R.string.action_1_toast);
+                    break;
+                case 1:// set as first
+                    toast(R.string.action_2_toast);
+                    break;
+                case 2:// move horizontal axis
+                default:
+                    toast(R.string.action_3_toast);
+                    break;
             }
+            return true;
         });
         // set on item selected
         listViewSort.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -689,7 +696,7 @@ public class ArMeasureActivity extends AppCompatActivity {
                         checkIfHit(cubeSelected, nowTouchingPointIndex);
                     }
                     StringBuilder sb = new StringBuilder();
-                    double surface = 0;
+                    double surface = 1;
                     double total = 0;
                     Pose point1;
                     // draw first cube
@@ -707,17 +714,20 @@ public class ArMeasureActivity extends AppCompatActivity {
                         drawLine(point0, point1, viewmtx, projmtx);
 
                         float distanceCm = ((int)(getDistance(point0, point1) * 1000))/10.0f;
-                        float surfaceCm = ((int)(getSurface(point0, point1) * 1000))/10.0f;
+
                         total += distanceCm;
                         surface *= distanceCm;
-                        Timber.d(String.valueOf(surface));
+                        System.out.println("[TEST] " + surface);
                         sb.append(" + ").append(distanceCm);
 
                         point0 = point1;
                     }
 
                     // show result
-                    String result = sb.toString().replaceFirst("[+]", "") + " = " + (((int)(total * 10f))/10f) + "cm\nsurface : "+ surface + " cm"  ;
+                    String result = sb
+                            .toString()
+                            .replaceFirst("[+]", "") +
+                            " = " + (((int)(total * 10f))/10f) + "cm\nsurface : "+ surface + " cm"  ;
                     showResult(result);
                 }
 
@@ -734,7 +744,7 @@ public class ArMeasureActivity extends AppCompatActivity {
                                         == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
                             // Cap the number of objects created. This avoids overloading both the
                             // rendering system and ARCore.
-                            if (anchors.size() >= 16) {
+                            if (anchors.size() >= 3) {
                                 anchors.get(0).detach();
                                 anchors.remove(0);
 
